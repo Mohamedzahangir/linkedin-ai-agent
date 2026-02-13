@@ -6,7 +6,7 @@ A hybrid AI system that combines a deterministic workflow backbone with a bounde
 
 ->Structured workflow orchestration
 
-_>Topic scoring engine
+->Topic scoring engine
 
 ->LLM-based content generation
 
