@@ -12,12 +12,12 @@ def job_listener(event):
         print("✅ Job executed successfully.")
 
 
-def start_scheduler(topic: str):
+def start_scheduler():
     scheduler = BlockingScheduler()
 
     def scheduled_job():
         try:
-            result = run_workflow(topic)
+            result = run_workflow()
             if result:
                 print("\nPost generated and saved successfully.\n")
             else:
