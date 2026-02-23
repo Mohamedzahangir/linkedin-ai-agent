@@ -9,13 +9,16 @@ def init_db():
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            topic TEXT UNIQUE,
-            content TEXT,
-            created_at TEXT
-        )
-    """)
+    CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic TEXT UNIQUE,
+        content TEXT,
+        created_at TEXT,
+        likes INTEGER DEFAULT 0,
+        comments INTEGER DEFAULT 0,
+        impressions INTEGER DEFAULT 0
+    )
+""")
 
     conn.commit()
     conn.close()
@@ -41,6 +44,19 @@ def save_post(topic: str, content: str):
         INSERT INTO posts (topic, content, created_at)
         VALUES (?, ?, ?)
     """, (topic, content, datetime.utcnow().isoformat()))
+
+    conn.commit()
+    conn.close()
+
+def update_engagement(topic: str, likes: int, comments: int, impressions: int):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE posts
+        SET likes = ?, comments = ?, impressions = ?
+        WHERE topic = ?
+    """, (likes, comments, impressions, topic))
 
     conn.commit()
     conn.close()
