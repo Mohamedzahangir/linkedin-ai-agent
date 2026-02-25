@@ -88,3 +88,26 @@ def get_average_engagement():
     ]
 
     return sum(scores) / len(scores)
+
+def get_topic_engagement_score(topic: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT likes, comments, impressions
+        FROM posts
+        WHERE topic = ? AND impressions > 0
+    """, (topic,))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        return 0.0
+
+    scores = [
+        calculate_engagement_score(l, c, i)
+        for l, c, i in rows
+    ]
+
+    return sum(scores) / len(scores)

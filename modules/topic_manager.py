@@ -1,5 +1,6 @@
 import sqlite3
 from modules.memory import get_average_engagement
+from modules.memory import get_topic_engagement_score
 
 DB_PATH = "database/posts.db"
 
@@ -34,13 +35,11 @@ def get_used_topics():
 def score_topic(topic):
     base_score = 0.6 * topic["relevance"] + 0.4 * topic["trend"]
 
-    avg_engagement = get_average_engagement()
+    performance_score = get_topic_engagement_score(topic["name"])
 
-    # Adaptive boost
-    adaptive_multiplier = 1 + avg_engagement
+    adaptive_multiplier = 1 + performance_score
 
     return base_score * adaptive_multiplier
-
 def get_next_topic():
     used_topics = get_used_topics()
 
