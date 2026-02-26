@@ -1,6 +1,8 @@
 import sqlite3
+import modules
 from modules.memory import get_average_engagement
 from modules.memory import get_topic_engagement_score
+from modules.topic_generator import generate_new_topics 
 
 DB_PATH = "database/posts.db"
 
@@ -48,11 +50,22 @@ def get_next_topic():
         if topic["name"] not in used_topics
     ]
 
+    
     if not available_topics:
-        print("⚠ All topics used.")
-        return None
+        print("⚡ Topic pool exhausted. Generating new topics...")
+    new_topics = modules.topic_generator.generate_new_topics()
 
-    # Score and select highest
+    for t in new_topics:
+        TOPIC_POOL.append({
+            "name": t,
+            "relevance": 0.8,
+            "trend": 0.8
+        })
+
+    available_topics = [
+        topic for topic in TOPIC_POOL
+        if topic["name"] not in used_topics
+    ]# Score and select highest
     best_topic = max(available_topics, key=score_topic)
 
     return best_topic["name"]
