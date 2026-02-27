@@ -3,6 +3,7 @@ import modules
 from modules.memory import get_average_engagement
 from modules.memory import get_topic_engagement_score
 from modules.topic_generator import generate_new_topics 
+from difflib import SequenceMatcher
 
 DB_PATH = "database/posts.db"
 
@@ -56,11 +57,14 @@ def get_next_topic():
     new_topics = modules.topic_generator.generate_new_topics()
 
     for t in new_topics:
-        TOPIC_POOL.append({
-            "name": t,
-            "relevance": 0.8,
-            "trend": 0.8
-        })
+        if not is_similar_to_existing(t):
+            TOPIC_POOL.append({
+                "name": t,
+                "relevance": 0.8,
+                "trend": 0.8
+            })
+        else:
+            print(f"⚠ Skipped similar topic: {t}")
 
     available_topics = [
         topic for topic in TOPIC_POOL
@@ -69,3 +73,13 @@ def get_next_topic():
     best_topic = max(available_topics, key=score_topic)
 
     return best_topic["name"]
+
+
+def similarity(a: str, b: str) -> float:
+    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
+def is_similar_to_existing(new_topic: str, threshold: float = 0.7) -> bool:
+    for topic in TOPIC_POOL:
+        if similarity(new_topic, topic["name"]) > threshold:
+            return True
+    return False
