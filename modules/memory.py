@@ -9,20 +9,20 @@ def init_db():
     cursor = conn.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        topic TEXT UNIQUE,
-        content TEXT,
-        created_at TEXT,
-        likes INTEGER DEFAULT 0,
-        comments INTEGER DEFAULT 0,
-        impressions INTEGER DEFAULT 0
-    )
-""")
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT UNIQUE,
+            content TEXT,
+            created_at TEXT,
+            posting_hour INTEGER,
+            likes INTEGER DEFAULT 0,
+            comments INTEGER DEFAULT 0,
+            impressions INTEGER DEFAULT 0
+        )
+    """)
 
     conn.commit()
     conn.close()
-
 
 def topic_exists(topic: str) -> bool:
     conn = sqlite3.connect(DB_PATH)
@@ -40,10 +40,26 @@ def save_post(topic: str, content: str):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    now = datetime.utcnow()
+    posting_hour = now.hour
+
     cursor.execute("""
-        INSERT INTO posts (topic, content, created_at)
-        VALUES (?, ?, ?)
-    """, (topic, content, datetime.utcnow().isoformat()))
+        INSERT INTO posts (
+            topic,
+            content,
+            created_at,
+            posting_hour,
+            likes,
+            comments,
+            impressions
+        )
+        VALUES (?, ?, ?, ?, 0, 0, 0)
+    """, (
+        topic,
+        content,
+        now.isoformat(),
+        posting_hour
+    ))
 
     conn.commit()
     conn.close()
@@ -111,3 +127,34 @@ def get_topic_engagement_score(topic: str):
     ]
 
     return sum(scores) / len(scores)
+
+def get_best_posting_hour():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT posting_hour, likes, comments, impressions
+        FROM posts
+        WHERE impressions > 0
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        return 9  # Default fallback hour
+
+    hour_scores = {}
+
+    for hour, likes, comments, impressions in rows:
+        score = calculate_engagement_score(likes, comments, impressions)
+        if hour not in hour_scores:
+            hour_scores[hour] = []
+        hour_scores[hour].append(score)
+
+    avg_scores = {
+        hour: sum(scores)/len(scores)
+        for hour, scores in hour_scores.items()
+    }
+
+    return max(avg_scores, key=avg_scores.get)

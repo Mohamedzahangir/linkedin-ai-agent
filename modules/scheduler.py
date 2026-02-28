@@ -1,7 +1,11 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
+from modules.memory import get_best_posting_hour
 from modules.workflow import run_workflow
 import traceback
+from modules.memory import get_best_posting_hour
+from modules.memory import init_db
+
 
 
 def job_listener(event):
@@ -13,26 +17,21 @@ def job_listener(event):
 
 
 def start_scheduler():
+    init_db()   # 🔥 CREATE TABLE FIRST
+
     scheduler = BlockingScheduler()
 
-    def scheduled_job():
-        try:
-            result = run_workflow()
-            if result:
-                print("\nPost generated and saved successfully.\n")
-            else:
-                print("\nDuplicate detected. Skipped generation.\n")
-        except Exception as e:
-            print("\n🚨 Unexpected error in scheduled job:")
-            print(str(e))
+    best_hour = get_best_posting_hour()
 
-    scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    def scheduled_job():
+        run_workflow()
 
     scheduler.add_job(
         scheduled_job,
-        trigger="interval",
-        minutes=1
+        trigger="cron",
+        hour=best_hour,
+        minute=0
     )
 
-    print("Scheduler started. Running every 1 minute...")
+    print(f"Scheduler started. Optimized for hour {best_hour}:00")
     scheduler.start()
