@@ -142,7 +142,7 @@ def get_best_posting_hour():
     conn.close()
 
     if not rows:
-        return 9  # Default fallback hour
+        return 9  
 
     hour_scores = {}
 
@@ -158,3 +158,26 @@ def get_best_posting_hour():
     }
 
     return max(avg_scores, key=avg_scores.get)
+
+def get_top_performing_post():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT content, likes, comments, impressions
+        FROM posts
+        WHERE impressions > 0
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        return None
+
+    best = max(
+        rows,
+        key=lambda r: calculate_engagement_score(r[1], r[2], r[3])
+    )
+
+    return best[0]

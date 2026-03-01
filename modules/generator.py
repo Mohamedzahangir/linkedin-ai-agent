@@ -1,31 +1,47 @@
 from openai import OpenAI
 from config import OPENROUTER_API_KEY
+from modules.memory import get_top_performing_post
 
 client = OpenAI(
     api_key=OPENROUTER_API_KEY,
     base_url="https://openrouter.ai/api/v1"
 )
 
+
 def generate_post(topic: str) -> str:
-    prompt = f"""
-You are an AI & Data Science student building a personal brand.
+    top_post = get_top_performing_post()
 
-Write a professional LinkedIn post about: "{topic}"
+    tone_instruction = ""
 
-Requirements:
-- Strong opening hook
-- Clear structured paragraphs
-- Insightful but concise
-- Professional tone
-- Add spacing between paragraphs
-- End with a thoughtful closing line
-"""
+    if top_post:
+        tone_instruction = """
+        Analyze the structure and tone of the previously high-performing post.
+        Mimic its writing style (hook strength, structure, pacing),
+        but DO NOT copy content.
+        """
+
+    system_prompt = f"""
+    You are a LinkedIn content strategist.
+
+    Write engaging, high-quality LinkedIn posts that:
+    - Start with a strong hook
+    - Are easy to read (short paragraphs)
+    - Provide insight or value
+    - End with a thought-provoking close
+
+    {tone_instruction}
+    """
+
+    user_prompt = f"""
+    Write a LinkedIn post about:
+    {topic}
+    """
 
     response = client.chat.completions.create(
-        model="openrouter/free",
+        model="deepseek/deepseek-chat",
         messages=[
-            {"role": "system", "content": "You are a professional LinkedIn content strategist."},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
         ],
         temperature=0.7
     )
