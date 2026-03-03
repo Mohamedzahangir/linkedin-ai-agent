@@ -1,8 +1,10 @@
 import requests
 import json
+from config import LINKEDIN_ACCESS_TOKEN
+from config import LINKEDIN_MEMBER_ID
 
-ACCESS_TOKEN = "AQW2A_vvYyHcBlpA3qcummBQncUHe_Q5yIltkXAKiEG_LJMYodmBf6aWk-gda7ChZMPPZhtiipmRbVspMqr12L9nOx_Qf8dWYyVqN6TtytCAjrJg45i7sTYiWOGmcXMbthF6-WZwEKaiHHOVJazsU00JbYOf0arOp4AxlCrVP3-LdWbuleQZkblZ-Aoxr88vLFW72vNrlDEy1gG3ybykCIz9pP8zir8SppFwm5-aNWTENSWICPmtUEBzoRYpdDyFVyW55OJMnzA-bh7JYO7N_yUSxjbbDSPXC8xS23ubNZeS1v6kYk174tbM1Xk7N_jZYMUCKuu5Mb_H6KhUPyvTN-Ev_f1tTg"
-PERSON_URN = "urn:li:person:hA7oDaqjgV"
+ACCESS_TOKEN = LINKEDIN_ACCESS_TOKEN
+PERSON_URN = f"urn:li:person:{LINKEDIN_MEMBER_ID}"
 
 headers = {
     "Authorization": f"Bearer {ACCESS_TOKEN}",
